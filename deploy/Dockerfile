@@ -15,4 +15,4 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 COPY app ./app
 
-CMD ["sh", "-c", "set -eu; LOG_FILE=\"${APP_LOG_DIR}/be-vita-hot-engine.log\"; mkdir -p \"${APP_LOG_DIR}\"; touch \"${LOG_FILE}\"; tail -n 0 -F \"${LOG_FILE}\" & exec uvicorn app.main:app --host 0.0.0.0 --port \"${APP_PORT}\" >> \"${LOG_FILE}\" 2>&1"]
+CMD ["sh", "-c", "set -eu; mkdir -p \"${APP_LOG_DIR}\"; exec uvicorn app.main:app --host 0.0.0.0 --port \"${APP_PORT}\""]
