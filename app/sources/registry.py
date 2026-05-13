@@ -2,36 +2,21 @@
 
 from __future__ import annotations
 
-from typing import Dict
+from typing import Dict, List, Tuple
 
 from app.core.config import Settings
-from app.sources.baidu import BaiduHotSource
 from app.sources.base import HotSourceAdapter
-from app.sources.bilibili import BilibiliHotSource
-from app.sources.hot36kr import Kr36HotSource
-from app.sources.ithome import ITHomeHotSource
-from app.sources.juejin import JuejinHotSource
-from app.sources.sspai import SSPaiHotSource
-from app.sources.weibo import WeiboHotSource
-from app.sources.zhihu import ZhihuHotSource
-
-SOURCE_ADAPTERS = (
-    WeiboHotSource,
-    ZhihuHotSource,
-    BaiduHotSource,
-    BilibiliHotSource,
-    JuejinHotSource,
-    ITHomeHotSource,
-    Kr36HotSource,
-    SSPaiHotSource,
-)
+from app.sources.catalog import SourcePreset, build_source_catalog
+from app.sources.route_source import CatalogRouteSource
+from app.sources.routes import build_route_fetchers
 
 
-def build_source_registry(settings: Settings) -> Dict[str, HotSourceAdapter]:
-    """Instantiate the fixed v1 source adapters."""
+def build_source_registry(settings: Settings) -> Tuple[Dict[str, HotSourceAdapter], List[SourcePreset]]:
+    """Instantiate the full source registry."""
 
+    presets = build_source_catalog()
+    route_fetchers = build_route_fetchers()
     registry: Dict[str, HotSourceAdapter] = {}
-    for adapter_class in SOURCE_ADAPTERS:
-        adapter = adapter_class(settings)
-        registry[adapter.source_code] = adapter
-    return registry
+    for preset in presets:
+        registry[preset.source_code] = CatalogRouteSource(settings, preset, route_fetchers)
+    return registry, presets

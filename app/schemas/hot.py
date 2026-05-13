@@ -43,7 +43,9 @@ class HotSourceSnapshot(BaseModel):
     """Normalized hot source snapshot."""
 
     sourceCode: str
+    routeCode: str
     sourceName: str
+    sourceType: str
     fetchedAt: datetime
     items: List[HotItem]
 
@@ -57,8 +59,13 @@ class HotSourceInfo(BaseModel):
     """Source metadata."""
 
     sourceCode: str
+    routeCode: str
+    iconKey: str
     sourceName: str
+    sourceType: str
+    description: str = ""
     enabled: bool = True
+    defaultVisible: bool = False
 
 
 class HotSourcesResponse(BaseModel):
