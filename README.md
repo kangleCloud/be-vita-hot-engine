@@ -54,7 +54,6 @@ cp .env.example .env.develop
 | `APP_NAME` | 服务名称 |
 | `APP_ENV` | 运行环境，默认 `develop` |
 | `APP_HOST` | 服务监听地址；容器部署建议使用 `0.0.0.0` |
-| `APP_PUBLIC_HOST` | 对外访问主机名或 IP，仅用于拼接访问地址和部署说明 |
 | `APP_PORT` | 服务监听端口；Docker 部署时也作为宿主机映射端口 |
 | `APP_LOG_DIR` | Docker 部署日志目录；容器会将 `be-vita-hot-engine.log` 写入该目录 |
 | `HOT_API_TOKEN` | 内部 Bearer Token |
@@ -63,7 +62,6 @@ cp .env.example .env.develop
 | `HOT_ZHIHU_COOKIE` | 预留给后续直连抓取模式的知乎 Cookie |
 | `HOT_FILTER_WEIBO_ADVERTISEMENT` | 是否启用微博广告项过滤，默认 `false` |
 
-说明：`APP_PUBLIC_HOST` 只用于拼接访问地址，不参与 FastAPI 监听地址和路由注册。
 说明：`APP_LOG_DIR` 只用于 Docker 容器日志落盘；当前日志文件固定为 `${APP_LOG_DIR}/be-vita-hot-engine.log`。
 
 ## 启动方式
