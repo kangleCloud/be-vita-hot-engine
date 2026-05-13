@@ -1,12 +1,18 @@
 # Use `docker compose --env-file .env.production -f deploy/docker-compose.yaml up --build`
-# so APP_PORT interpolation for host port publishing stays aligned with .env.production.
+# so APP_PORT and APP_LOG_DIR interpolation for host publishing and bind mounts
+# stays aligned with .env.production.
 services:
   be-vita-hot-engine:
     build:
       context: ..
       dockerfile: deploy/Dockerfile
     container_name: be-vita-hot-engine
+    restart: unless-stopped
     env_file:
       - ../.env.production
+    environment:
+      APP_LOG_DIR: "${APP_LOG_DIR:-/data/logs/be-vita-hot-engine}"
     ports:
       - "${APP_PORT:-18000}:${APP_PORT:-18000}"
+    volumes:
+      - "${APP_LOG_DIR:-/data/logs/be-vita-hot-engine}:${APP_LOG_DIR:-/data/logs/be-vita-hot-engine}"

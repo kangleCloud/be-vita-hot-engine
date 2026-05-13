@@ -56,6 +56,7 @@ cp .env.example .env.develop
 | `APP_HOST` | 服务监听地址；容器部署建议使用 `0.0.0.0` |
 | `APP_PUBLIC_HOST` | 对外访问主机名或 IP，仅用于拼接访问地址和部署说明 |
 | `APP_PORT` | 服务监听端口；Docker 部署时也作为宿主机映射端口 |
+| `APP_LOG_DIR` | Docker 部署日志目录；容器会将 `be-vita-hot-engine.log` 写入该目录 |
 | `HOT_API_TOKEN` | 内部 Bearer Token |
 | `HOT_HTTP_TIMEOUT` | 上游请求超时时间，单位秒 |
 | `HOT_DAILYHOT_BASE_URL` | 已废弃，仅保留兼容读取；当前 Python 原生取数主流程不会再依赖它 |
@@ -63,6 +64,7 @@ cp .env.example .env.develop
 | `HOT_FILTER_WEIBO_ADVERTISEMENT` | 是否启用微博广告项过滤，默认 `false` |
 
 说明：`APP_PUBLIC_HOST` 只用于拼接访问地址，不参与 FastAPI 监听地址和路由注册。
+说明：`APP_LOG_DIR` 只用于 Docker 容器日志落盘；当前日志文件固定为 `${APP_LOG_DIR}/be-vita-hot-engine.log`。
 
 ## 启动方式
 
@@ -202,8 +204,11 @@ set -a
 source .env.production
 set +a
 
+mkdir -p "${APP_LOG_DIR}"
+
 docker run --rm \
   --env-file .env.production \
+  -v "${APP_LOG_DIR}:${APP_LOG_DIR}" \
   -p "${APP_PORT}:${APP_PORT}" \
   be-vita-hot-engine
 ```
@@ -214,7 +219,10 @@ docker run --rm \
 docker compose --env-file .env.production -f deploy/docker-compose.yaml up --build
 ```
 
+如果你要自定义 `APP_LOG_DIR`，需要在执行 `docker compose` 时通过 `--env-file` 或当前 shell 环境提供该变量，不能只依赖 `env_file: ../.env.production` 给容器注入。
+
 容器启动后可通过 `http://${APP_PUBLIC_HOST}:${APP_PORT}/api/v1/health` 访问健康检查。
+容器日志会落盘到 `${APP_LOG_DIR}/be-vita-hot-engine.log`，同时继续可通过 `docker logs be-vita-hot-engine` 查看实时输出。
 
 直接启动项目：
 ```bash
