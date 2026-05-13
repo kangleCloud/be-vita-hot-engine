@@ -1,6 +1,9 @@
-# Use `docker compose --env-file .env.production -f deploy/docker-compose.yaml up --build`
-# so APP_PORT and APP_LOG_DIR interpolation for host publishing and bind mounts
-# stays aligned with .env.production.
+# Use:
+#   docker compose --env-file .env.develop -f deploy/docker-compose.yaml up -d --build
+#
+# APP_HOST controls the host bind address:
+#   APP_HOST=127.0.0.1  -> only the server itself can access the published port
+#   APP_HOST=0.0.0.0    -> all network interfaces can access the published port
 services:
   be-vita-hot-engine:
     build:
@@ -9,10 +12,12 @@ services:
     container_name: be-vita-hot-engine
     restart: unless-stopped
     env_file:
-      - ../.env.production
+      - ../.env.develop
     environment:
+      APP_HOST: "${APP_HOST:-127.0.0.1}"
+      APP_PORT: "${APP_PORT:-18000}"
       APP_LOG_DIR: "${APP_LOG_DIR:-/data/logs/be-vita-hot-engine}"
     ports:
-      - "${APP_PORT:-18000}:${APP_PORT:-18000}"
+      - "${APP_HOST:-127.0.0.1}:${APP_PORT:-18000}:${APP_PORT:-18000}"
     volumes:
       - "${APP_LOG_DIR:-/data/logs/be-vita-hot-engine}:${APP_LOG_DIR:-/data/logs/be-vita-hot-engine}"
