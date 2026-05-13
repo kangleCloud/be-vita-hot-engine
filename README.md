@@ -53,13 +53,16 @@ cp .env.example .env.develop
 | --- | --- |
 | `APP_NAME` | 服务名称 |
 | `APP_ENV` | 运行环境，默认 `develop` |
-| `APP_HOST` | 监听地址 |
-| `APP_PORT` | 监听端口 |
+| `APP_HOST` | 服务监听地址；容器部署建议使用 `0.0.0.0` |
+| `APP_PUBLIC_HOST` | 对外访问主机名或 IP，仅用于拼接访问地址和部署说明 |
+| `APP_PORT` | 服务监听端口；Docker 部署时也作为宿主机映射端口 |
 | `HOT_API_TOKEN` | 内部 Bearer Token |
 | `HOT_HTTP_TIMEOUT` | 上游请求超时时间，单位秒 |
 | `HOT_DAILYHOT_BASE_URL` | 已废弃，仅保留兼容读取；当前 Python 原生取数主流程不会再依赖它 |
 | `HOT_ZHIHU_COOKIE` | 预留给后续直连抓取模式的知乎 Cookie |
 | `HOT_FILTER_WEIBO_ADVERTISEMENT` | 是否启用微博广告项过滤，默认 `false` |
+
+说明：`APP_PUBLIC_HOST` 只用于拼接访问地址，不参与 FastAPI 监听地址和路由注册。
 
 ## 启动方式
 
@@ -67,7 +70,10 @@ cp .env.example .env.develop
 
 ```bash
 source .venv/bin/activate
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+set -a
+source .env.develop
+set +a
+uvicorn app.main:app --host "$APP_HOST" --port "$APP_PORT" --reload
 ```
 
 访问示例：
@@ -75,6 +81,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 - 健康检查：`GET /api/v1/health`
 - 源列表：`GET /api/v1/hot/sources`
 - 单源快照：`GET /api/v1/hot/{source_code}`
+- 对外访问地址：`http://{APP_PUBLIC_HOST}:{APP_PORT}/api/v1/...`
 
 源目录说明：
 
@@ -96,27 +103,32 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 健康检查：
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/health
+set -a
+source .env.develop
+set +a
+BASE_URL="http://${APP_PUBLIC_HOST}:${APP_PORT}"
+
+curl "${BASE_URL}/api/v1/health"
 ```
 
 查询源列表：
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/hot/sources \
+curl "${BASE_URL}/api/v1/hot/sources" \
   -H 'Authorization: Bearer replace-with-a-secure-token'
 ```
 
 查询微博热搜：
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/hot/weibo \
+curl "${BASE_URL}/api/v1/hot/weibo" \
   -H 'Authorization: Bearer replace-with-a-secure-token'
 ```
 
 查询 GitHub 周榜：
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/hot/github__weekly \
+curl "${BASE_URL}/api/v1/hot/github__weekly" \
   -H 'Authorization: Bearer replace-with-a-secure-token'
 ```
 
@@ -183,13 +195,28 @@ pytest
 docker build -f deploy/Dockerfile -t be-vita-hot-engine .
 ```
 
+使用 `docker run`：
+
+```bash
+set -a
+source .env.production
+set +a
+
+docker run --rm \
+  --env-file .env.production \
+  -p "${APP_PORT}:${APP_PORT}" \
+  be-vita-hot-engine
+```
+
 使用 compose：
 
 ```bash
-docker compose -f deploy/docker-compose.yaml up --build
+docker compose --env-file .env.production -f deploy/docker-compose.yaml up --build
 ```
 
-启动项目：
+容器启动后可通过 `http://${APP_PUBLIC_HOST}:${APP_PORT}/api/v1/health` 访问健康检查。
+
+直接启动项目：
 ```bash
 # 激活虚拟环境
 source .venv/bin/activate

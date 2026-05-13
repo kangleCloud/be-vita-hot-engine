@@ -1,3 +1,5 @@
+# Use `docker compose --env-file .env.production -f deploy/docker-compose.yaml up --build`
+# so APP_PORT interpolation for host port publishing stays aligned with .env.production.
 services:
   be-vita-hot-engine:
     build:
@@ -7,6 +9,4 @@ services:
     env_file:
       - ../.env.production
     ports:
-      - "${APP_PORT:-8000}:${APP_PORT:-8000}"
-    command: >
-      sh -c "uvicorn app.main:app --host $${APP_HOST:-127.0.0.1} --port $${APP_PORT:-8000}"
+      - "${APP_PORT:-18000}:${APP_PORT:-18000}"
